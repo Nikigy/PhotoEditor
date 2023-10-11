@@ -1,77 +1,94 @@
+# FILEPATH: /home/nikolai/Documents/VSCode/PhotoEditor/main.py
 from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
-from kivy.uix.image import Image
-from kivy.uix.label import Label
-from kivy.uix.popup import Popup
-from kivy.uix.textinput import TextInput
-from PIL import Image as PILImage
-from PIL import ImageOps
+from kivy.uix.screenmanager import ScreenManager
+from kivy.uix.screenmanager import Screen
+from kivy.lang import Builder
+from PIL import Image, ImageOps, ImageFilter
+from io import BytesIO
 
+class PhotoManager(ScreenManager):
+    pass
 
-class PhotoEditor(App):
+class PhotoEditorScreen(Screen):
+
+    def save_image(self):
+        image = self.ids.image
+        image.texture.save("output.png")
+
+    def black_and_white(self):
+        image = self.ids.image
+        data = image.texture.pixels
+        img = Image.frombytes(mode='RGBA', size=image.texture.size, data=data)
+        img = ImageOps.grayscale(img)
+        img_data = img.tobytes()
+        texture = Texture.create(size=img.size, colorfmt='rgba')
+        texture.blit_buffer(img_data, colorfmt='rgba', bufferfmt='ubyte')
+        image.texture = texture
+
+    def invert(self):
+        image = self.ids.image
+        data = image.texture.pixels
+        img = Image.frombytes(mode='RGBA', size=image.texture.size, data=data)
+        img = ImageOps.invert(img)
+        img_data = img.tobytes()
+        texture = Texture.create(size=img.size, colorfmt='rgba')
+        texture.blit_buffer(img_data, colorfmt='rgba', bufferfmt='ubyte')
+        image.texture = texture
+
+    def line_drawing(self):
+        image = self.ids.image
+        data = image.texture.pixels
+        img = Image.frombytes(mode='RGBA', size=image.texture.size, data=data)
+        img = img.convert('L')
+        img = img.filter(ImageFilter.CONTOUR)
+        img_data = img.tobytes()
+        texture = Texture.create(size=img.size, colorfmt='rgba')
+        texture.blit_buffer(img_data, colorfmt='rgba', bufferfmt='ubyte')
+        image.texture = texture
+
+    def pointilism(self):
+        image = self.ids.image
+        data = image.texture.pixels
+        img = Image.frombytes(mode='RGBA', size=image.texture.size, data=data)
+        img = img.filter(ImageFilter.MedianFilter(size=5))
+        img = img.quantize(colors=10)
+        img_data = img.tobytes()
+        texture = Texture.create(size=img.size, colorfmt='rgba')
+        texture.blit_buffer(img_data, colorfmt='rgba', bufferfmt='ubyte')
+        image.texture = texture
+
+    def sepia(self):
+        image = self.ids.image
+        data = image.texture.pixels
+        img = Image.frombytes(mode='RGBA', size=image.texture.size, data=data)
+        sepia = (112, 66, 20)
+        depth = 30
+        r, g, b = img.split()
+        gray = ImageOps.grayscale(img)
+        r = r.filter(ImageFilter.GaussianBlur(depth))
+        b = b.filter(ImageFilter.GaussianBlur(depth))
+        g = g.filter(ImageFilter.GaussianBlur(depth))
+        r, g, b = map(lambda x: ImageOps.colorize(x, (0, 0, 0), sepia), (r, g, b))
+        img = Image.merge('RGB', (r, g, b))
+        img_data = img.tobytes()
+        texture = Texture.create(size=img.size, colorfmt='rgba')
+        texture.blit_buffer(img_data, colorfmt='rgba', bufferfmt='ubyte')
+        image.texture = texture
+
+    def pixilate(self):
+        image = self.ids.image
+        data = image.texture.pixels
+        img = Image.frombytes(mode='RGBA', size=image.texture.size, data=data)
+        img = img.resize((img.size[0] // 10, img.size[1] // 10), resample=Image.BOX)
+        img = img.resize((img.size[0] * 10, img.size[1] * 10), resample=Image.NEAREST)
+        img_data = img.tobytes()
+        texture = Texture.create(size=img.size, colorfmt='rgba')
+        texture.blit_buffer(img_data, colorfmt='rgba', bufferfmt='ubyte')
+        image.texture = texture
+
+class PhotoEditorApp(App):
     def build(self):
-        self.image = Image()
-        self.edit_buttons = {
-            "Black and White": self.black_and_white,
-            "Inverse": self.inverse,
-            "Line Drawing": self.line_drawing,
-            "Pointilism": self.pointilism,
-            "Sepia": self.sepia,
-            "Pixliate": self.pixliate,
-        }
-        layout = BoxLayout(orientation="vertical")
-        layout.add_widget(self.image)
-        button_layout = BoxLayout(orientation="horizontal")
-        button_layout.add_widget(Button(text="Load Image", on_press=self.load_image))
-        for button_text in self.edit_buttons:
-            button_layout.add_widget(Button(text=button_text, on_press=self.edit_buttons[button_text]))
-        layout.add_widget(button_layout)
-        return layout
-
-    def load_image(self, instance):
-        content = BoxLayout(orientation="vertical")
-        content.add_widget(Label(text="Enter Image Name:"))
-        self.image_name_input = TextInput(multiline=False)
-        content.add_widget(self.image_name_input)
-        content.add_widget(Button(text="Load", on_press=self.load_image_from_input))
-        self.popup = Popup(title="Load Image", content=content, size_hint=(0.5, 0.5))
-        self.popup.open()
-
-    def load_image_from_input(self, instance):
-        image_name = self.image_name_input.text
-        try:
-            with open(image_name, "rb") as f:
-                img = PILImage.open(f)
-                self.image.texture = img.convert("RGBA").tobytes()
-        except FileNotFoundError:
-            self.show_error_popup("File not found.")
-
-    def black_and_white(self, instance):
-        self.image.texture = ImageOps.grayscale(PILImage.frombytes("RGBA", self.image.texture.size, self.image.texture)).tobytes()
-
-    def inverse(self, instance):
-        self.image.texture = ImageOps.invert(PILImage.frombytes("RGBA", self.image.texture.size, self.image.texture)).tobytes()
-
-    def line_drawing(self, instance):
-        self.image.texture = ImageOps.posterize(PILImage.frombytes("RGBA", self.image.texture.size, self.image.texture), 1).tobytes()
-
-    def pointilism(self, instance):
-        self.image.texture = ImageOps.posterize(PILImage.frombytes("RGBA", self.image.texture.size, self.image.texture), 4).tobytes()
-
-    def sepia(self, instance):
-        self.image.texture = ImageOps.colorize(ImageOps.grayscale(PILImage.frombytes("RGBA", self.image.texture.size, self.image.texture)), "#704214", "#C0C090").tobytes()
-
-    def pixliate(self, instance):
-        self.image.texture = PILImage.frombytes("RGBA", self.image.texture.size, self.image.texture).resize((32, 32), PILImage.BOX).resize(self.image.texture.size, PILImage.BOX).tobytes()
-
-    def show_error_popup(self, message):
-        content = BoxLayout(orientation="vertical")
-        content.add_widget(Label(text=message))
-        content.add_widget(Button(text="OK", on_press=self.popup.dismiss))
-        self.popup = Popup(title="Error", content=content, size_hint=(0.5, 0.5))
-        self.popup.open()
-
+        return Builder.load_file("photolayout.kv")
 
 if __name__ == "__main__":
-    PhotoEditor().run()
+    PhotoEditorApp().run()

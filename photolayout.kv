@@ -1,0 +1,99 @@
+PhotoManager:
+    PhotoEditorScreen:
+        name: "editor"
+
+<PhotoEditorScreen>:
+    BoxLayout:
+        orientation: "vertical"
+        padding: 10
+        spacing: 10
+
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint_y: None
+            height: 30
+
+            Button:
+                text: "Load Image"
+                on_release: root.load_image_popup()
+
+            Button:
+                text: "Save Image"
+                on_release: root.save_image()
+
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint_y: None
+            height: 30
+
+            Button:
+                text: "Black and White"
+                on_release: root.black_and_white()
+
+            Button:
+                text: "Invert"
+                on_release: root.invert()
+
+            Button:
+                text: "Line Drawing"
+                on_release: root.line_drawing()
+
+            Button:
+                text: "Pointilism"
+                on_release: root.pointilism()
+
+            Button:
+                text: "Sepia"
+                on_release: root.sepia()
+
+            Button:
+                text: "Pixilate"
+                on_release: root.pixilate()
+
+        Image:
+            id: image
+            allow_stretch: True
+            keep_ratio: True
+
+<LoadImagePopup>:
+    title: "Load Image"
+    size_hint: 0.8, 0.8
+
+    BoxLayout:
+        orientation: "vertical"
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: "Enter image name (e.g. image.png)"
+            size_hint_y: None
+            height: 30
+
+        TextInput:
+            id: image_name
+            multiline: False
+            size_hint_y: None
+            height: 30
+
+        Button:
+            text: "Load"
+            on_release: root.load_image(image_name.text)
+
+<ErrorPopup>:
+    title: "Error"
+    size_hint: 0.8, 0.8
+
+    BoxLayout:
+        orientation: "vertical"
+        padding: 10
+        spacing: 10
+
+        Label:
+            text: "The image does not exist."
+            size_hint_y: None
+            height: 30
+
+        Button:
+            text: "OK"
+            on_release: root.dismiss()
+    
