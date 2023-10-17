@@ -1,0 +1,64 @@
+PhotoEditorScreen:
+
+<PhotoEditorScreen>:
+    # Defining the layout
+    BoxLayout:
+        orientation: "vertical"
+        padding: 10
+        spacing: 10
+        
+        Image:
+            id: image
+            source: "images/placeholder.png"
+            size_hint: 
+
+        # Defining the load button
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint: (1, 0.1)
+
+            TextInput:
+                id: filename
+                text: "man.jpg"
+                size_hint: (0.8, 1)
+                multiline: False
+                halign: "center"
+
+
+            Button:
+                text: "Load Image"
+                on_release: root.load_image()
+
+            Button:
+                text: "Save Image"
+                on_release: root.save_image()
+
+        GridLayout:
+            cols: 3
+            rows: 2
+            spacing: 10
+            size_hint: (1, 0.2)
+
+            Button:
+                text: "Black and White"
+                on_release: root.blackAndWhite(filename.text)
+
+            Button:
+                text: "Invert"
+                on_release: root.invert(filename.text)
+
+            Button:
+                text: "Line Draw"
+                on_release: root.lineDraw(filename.text)
+
+            Button:
+                text: "Pointilism"
+                on_release: root.filter4()
+
+            Button:
+                text: "Filter 5"
+                on_release: root.filter5()
+
+            Button:
+                text: "Filter 6"
+                on_release: root.filter6()
