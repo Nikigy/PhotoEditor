@@ -1,7 +1,6 @@
 PhotoEditorScreen:
 
 <PhotoEditorScreen>:
-    # Defining the layout
     BoxLayout:
         orientation: "vertical"
         padding: 10
@@ -12,7 +11,6 @@ PhotoEditorScreen:
             source: "images/placeholder.png"
             size_hint: 
 
-        # Defining the load button
         BoxLayout:
             orientation: "horizontal"
             size_hint: (1, 0.1)
@@ -53,12 +51,12 @@ PhotoEditorScreen:
 
             Button:
                 text: "Pointilism"
-                on_release: root.filter4()
+                on_release: root.pointilism(filename.text)
 
             Button:
-                text: "Filter 5"
-                on_release: root.filter5()
+                text: "Sepia"
+                on_release: root.sepia(filename.text)
 
-            Button:
-                text: "Filter 6"
-                on_release: root.filter6()
+            ToggleButton:
+                text: "Pixelate"
+                on_state: root.pixelate(self.state == "down", filename.text, 100, 100, 200, 200)
